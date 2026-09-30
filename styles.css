@@ -482,3 +482,5 @@ body.is-locked .panel-main { display: none; }
   .lock-card { margin-top: 32px; padding: 22px 18px 18px; }
   .lock-input { font-size: 24px; }
 }
+.search input::placeholder { font-size: 13px; color: var(--muted); }
+@media (max-width: 380px) { .search input::placeholder { font-size: 12px; } }

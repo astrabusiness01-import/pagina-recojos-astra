@@ -115,7 +115,7 @@ function mostrar(recojo) {
       <div class="track"><div class="fill" id="pfill"></div></div>
       <div class="search">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar por guía o nombre" aria-label="Buscar caja" />
+        <input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar por 3 últimos dígitos de la guía o nombre" aria-label="Buscar caja" />
         <button type="button" id="qClear" aria-label="Borrar búsqueda" hidden>✕</button>
       </div>
       <div class="search-info" id="qInfo"></div>
