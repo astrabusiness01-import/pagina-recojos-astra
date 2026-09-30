@@ -151,12 +151,12 @@
   function setAdmin() {
     try { localStorage.setItem(ADMIN_KEY, "1"); } catch (e) {}
   }
-  // Barra de navegación superior: volver a recojos y al panel
-  function navBar(showRecojos) {
+  // Barra de navegación superior
+  // "Volver al panel" solo en el portal; dentro de cada cliente solo "← Recojos"
+  function navBar(enRecojo) {
     const links = [];
-    if (showRecojos) links.push('<a class="nav-btn" href="index.html">← Recojos</a>');
-    // Siempre visible: el panel pide el código del encargado al entrar
-    links.push('<a class="nav-btn nav-admin" href="panel.html">⚙ Volver al panel</a>');
+    if (enRecojo) links.push('<a class="nav-btn" href="index.html">← Recojos</a>');
+    else links.push('<a class="nav-btn nav-admin" href="panel.html">⚙ Volver al panel</a>');
     return links.length ? `<nav class="nav-bar">${links.join("")}</nav>` : "";
   }
 
