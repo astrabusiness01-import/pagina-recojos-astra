@@ -120,7 +120,8 @@
         const el = document.createElement("button");
         el.className = "btn btn-block " + (b.cls || "");
         el.textContent = b.label;
-        el.onclick = () => close(b.value);
+        // onClick corre dentro del mismo toque (Safari solo abre WhatsApp así)
+        el.onclick = () => { if (b.onClick) b.onClick(); close(b.value); };
         actions.appendChild(el);
       });
       m.onclick = (e) => { if (e.target === m) close(false); };
@@ -172,7 +173,12 @@
       const v = JSON.parse(localStorage.getItem(DRAFT_KEY));
       if (v && Array.isArray(v.recojos)) {
         if (v.base === pubTxt) return v.recojos;
+        // Solo se conservan los recojos que nunca se publicaron (ni antes ni ahora);
+        // así no reaparecen recojos que se borraron desde otro celular.
         const ids = new Set(pub.map((r) => r.id));
+        let base = [];
+        try { base = JSON.parse(v.base || "[]"); } catch (e) {}
+        base.forEach((r) => r && ids.add(r.id));
         const nuevos = v.recojos.filter((r) => !ids.has(r.id));
         return nuevos.concat(JSON.parse(pubTxt));
       }

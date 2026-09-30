@@ -14,7 +14,8 @@ function nuevoCodigo(usados = new Set()) {
   return c;
 }
 
-async function leerRecojos() {
+// Lee la lista y su versión (fecha de la última publicación)
+async function leerTodo() {
   const r = await get(ARCHIVO, { access: "private", useCache: false });
   if (!r || r.statusCode !== 200) return null;
   const txt = await new Response(r.stream).text();
@@ -27,8 +28,13 @@ async function leerRecojos() {
     if (/^\d{4}$/.test(x.codigo || "") && !usados.has(x.codigo)) usados.add(x.codigo);
     else { x.codigo = nuevoCodigo(usados); cambio = true; }
   });
-  if (cambio) await guardarRecojos(data.recojos);
-  return data.recojos;
+  const version = cambio ? await guardarRecojos(data.recojos) : data.actualizado || "";
+  return { recojos: data.recojos, version };
+}
+
+async function leerRecojos() {
+  const t = await leerTodo();
+  return t ? t.recojos : null;
 }
 
 // Resumen público: sin guías, nombres de consignatarios, códigos ni teléfonos
@@ -61,8 +67,10 @@ function leerBody(req) {
   return typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
 }
 
+// Guarda la lista y devuelve la nueva versión
 async function guardarRecojos(recojos) {
-  const body = JSON.stringify({ actualizado: new Date().toISOString(), recojos });
+  const actualizado = new Date().toISOString();
+  const body = JSON.stringify({ actualizado, recojos });
   await put(ARCHIVO, body, {
     access: "private",
     addRandomSuffix: false,
@@ -70,6 +78,7 @@ async function guardarRecojos(recojos) {
     contentType: "application/json",
     cacheControlMaxAge: 60
   });
+  return actualizado;
 }
 
 // ---- Validación: solo se guarda lo que la página sabe mostrar ----
@@ -127,4 +136,4 @@ function limpiarRecojos(lista) {
   });
 }
 
-module.exports = { leerRecojos, guardarRecojos, limpiarRecojos, resumen, detalle, pinValido, leerBody, espera };
+module.exports = { leerTodo, leerRecojos, guardarRecojos, limpiarRecojos, resumen, detalle, pinValido, leerBody, espera };

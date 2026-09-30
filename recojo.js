@@ -184,7 +184,7 @@ function mostrar(recojo) {
     if (done.has(gu)) {
       const ok = await A.confirmModal(
         "¿Desmarcar caja?",
-        `¿Seguro que quieres desmarcar la caja <b>${row.dataset.num} – ${row.dataset.name}</b>?`,
+        `¿Seguro que quieres desmarcar la caja <b>${A.esc(row.dataset.num)} – ${A.esc(row.dataset.name)}</b>?`,
         "Sí, desmarcar"
       );
       if (!ok) return;

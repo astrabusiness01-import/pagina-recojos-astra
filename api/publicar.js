@@ -1,5 +1,5 @@
 /* POST /api/publicar — publica la lista de recojos (requiere el código del encargado) */
-const { guardarRecojos, limpiarRecojos, pinValido, leerBody, espera } = require("./_datos");
+const { leerTodo, guardarRecojos, limpiarRecojos, pinValido, leerBody, espera } = require("./_datos");
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
@@ -19,8 +19,17 @@ module.exports = async (req, res) => {
   }
 
   try {
-    await guardarRecojos(recojos);
-    res.status(200).json({ ok: true, recojos });
+    // Si otro celular o pestaña publicó después de que este panel cargó la lista,
+    // no se sobrescribe (se perderían esos cambios): se pide recargar.
+    const actual = await leerTodo();
+    if (actual && actual.version && body.version !== actual.version) {
+      return res.status(409).json({
+        conflicto: true,
+        error: "La lista cambió desde otro celular o pestaña. Recarga el panel para ver lo último; tu recojo nuevo se conserva."
+      });
+    }
+    const version = await guardarRecojos(recojos);
+    res.status(200).json({ ok: true, recojos, version });
   } catch (e) {
     res.status(500).json({ error: "No se pudo publicar. Inténtalo de nuevo." });
   }

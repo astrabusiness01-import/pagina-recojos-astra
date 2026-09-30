@@ -1,5 +1,5 @@
 /* POST /api/admin — lista completa para el panel (requiere el código del encargado) */
-const { leerRecojos, pinValido, leerBody, espera } = require("./_datos");
+const { leerTodo, pinValido, leerBody, espera } = require("./_datos");
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
@@ -11,7 +11,8 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: "Código incorrecto." });
   }
   try {
-    res.status(200).json({ recojos: (await leerRecojos()) || [] });
+    const t = await leerTodo();
+    res.status(200).json({ recojos: t ? t.recojos : [], version: t ? t.version : "" });
   } catch (e) {
     res.status(500).json({ error: "No se pudo leer la lista de recojos." });
   }

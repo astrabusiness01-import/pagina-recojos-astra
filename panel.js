@@ -3,7 +3,7 @@
    Crea recojos desde la lista de Excel, los publica y envía
    a cada comercial su listado, link y código por WhatsApp.
    ========================================================== */
-function iniciarPanel(pin) {
+function iniciarPanel(pin, versionInicial) {
   const A = window.Astra;
   const DRAFT_KEY = A.DRAFT_KEY;
   A.setAdmin();
@@ -12,6 +12,7 @@ function iniciarPanel(pin) {
   const $ = (id) => document.getElementById(id);
 
   let PUBLICADO = JSON.stringify(window.RECOJOS || []);
+  let version = versionInicial || ""; // versión publicada que conoce este panel
 
   const loadDraft = () => A.cargarBorrador();
   const saveDraft = () => A.guardarBorrador(recojos);
@@ -301,7 +302,7 @@ function iniciarPanel(pin) {
           ${r.codigo ? `<div class="li-code">🔑 Código: <b>${A.esc(r.codigo)}</b>${r.telefono ? ` · 📱 +${A.esc(r.telefono)}` : ""}</div>` : ""}
         </div>
         <div class="li-actions">
-          ${recojoSinPublicar(r) ? '<button class="btn btn-sm btn-primary" data-act="pub">Publicar</button>' : '<button class="btn btn-sm btn-wsp" data-act="wsp">WhatsApp</button>'}
+          ${recojoSinPublicar(r) ? '<button class="btn btn-sm btn-primary" data-act="pub">Publicar</button>' : r.archivado ? "" : '<button class="btn btn-sm btn-wsp" data-act="wsp">WhatsApp</button>'}
           <button class="btn btn-sm" data-act="edit">Editar</button>
           <button class="btn btn-sm" data-act="arch">${r.archivado ? "Mostrar" : "Ocultar"}</button>
           <button class="btn btn-sm btn-danger" data-act="del">Borrar</button>
@@ -398,15 +399,17 @@ ${body}
       r = await fetch("/api/publicar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin, recojos })
+        body: JSON.stringify({ pin, recojos, version })
       });
     } catch (e) {
       throw new Error("Sin conexión a internet. Revisa tu señal e inténtalo de nuevo.");
     }
     const d = await r.json().catch(() => null);
-    if (!d) throw new Error("Aquí no se puede publicar. Abre el panel desde astra-recojos.vercel.app.");
+    if (d && d.conflicto) { const err = new Error(d.error); err.conflicto = true; throw err; }
+    if (!d) throw new Error("Aquí no se puede publicar. Abre el panel desde pagina-recojos-astra.vercel.app.");
     if (!r.ok) throw new Error(d.error || "No se pudo publicar.");
     window.RECOJOS = d.recojos;
+    version = d.version || version;
     PUBLICADO = JSON.stringify(d.recojos);
     recojos = JSON.parse(PUBLICADO);
     saveDraft();
@@ -422,11 +425,10 @@ ${body}
       html: `El recojo de <b>${A.esc(r.responsable)}</b> ya está en el portal.<br>Código de acceso: <b>${A.esc(r.codigo || "")}</b><br><br>Envía el listado y el código${destino} por WhatsApp.`,
       icon: "check",
       buttons: [
-        { label: "Enviar por WhatsApp y ver recojos", value: "wsp", cls: "btn-wsp" },
+        { label: "Enviar por WhatsApp y ver recojos", value: "wsp", cls: "btn-wsp", onClick: () => A.abrirWhatsApp(r) },
         { label: "Ir al portal de recojos", value: "portal", cls: "btn-primary" }
       ]
     });
-    if (opcion === "wsp") A.abrirWhatsApp(r);
     // Pequeña pausa para que el celular abra WhatsApp antes de cambiar de página
     setTimeout(() => { location.href = "index.html"; }, opcion === "wsp" ? 600 : 0);
   }
@@ -436,13 +438,23 @@ ${body}
     const texto = btn ? btn.textContent : "";
     for (;;) {
       if (btn && btn.isConnected) { btn.disabled = true; btn.textContent = "Publicando…"; }
-      let error = null;
-      try { await enviar(); } catch (e) { error = e.message; }
+      let error = null, conflicto = false;
+      try { await enviar(); } catch (e) { error = e.message; conflicto = !!e.conflicto; }
       if (btn && btn.isConnected) { btn.disabled = false; btn.textContent = texto; }
       renderList();
       if (!error) {
         if (exito) await A.modal({ title: "¡Publicado!", html: exito, icon: "check", buttons: [{ label: "Listo", value: true, cls: "btn-primary" }] });
         return true;
+      }
+      if (conflicto) {
+        await A.modal({
+          title: "La lista cambió",
+          html: A.esc(error),
+          icon: "warn",
+          buttons: [{ label: "Recargar panel", value: true, cls: "btn-primary" }]
+        });
+        location.reload();
+        return false;
       }
       const otraVez = await A.modal({
         title: "No se pudo publicar",
@@ -504,7 +516,7 @@ ${body}
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const pin = input.value.trim();
-    if (!pin) return;
+    if (!pin || btn.disabled) return;
     btn.disabled = true;
     btn.textContent = "Verificando…";
     let r, d;
@@ -522,7 +534,7 @@ ${body}
       window.RECOJOS = d.recojos; // lista completa publicada (con códigos)
       lock.remove();
       document.body.classList.remove("is-locked");
-      iniciarPanel(pin);
+      iniciarPanel(pin, d.version);
       return;
     }
     err.textContent = !d
