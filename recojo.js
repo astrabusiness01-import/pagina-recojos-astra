@@ -159,6 +159,21 @@ function mostrar(recojo) {
   q.addEventListener("input", buscar);
   qClear.addEventListener("click", () => { q.value = ""; buscar(); q.focus(); });
 
+  // ---------- Sesión: pedir el código otra vez tras 10 minutos fuera ----------
+  // Mientras la página está a la vista se renueva el tiempo; al salir a otra app
+  // queda registrado el momento, y al volver se revisa si ya vencieron los 10 minutos.
+  A.renovarCodigo(recojo.id);
+  setInterval(() => { if (document.visibilityState === "visible") A.renovarCodigo(recojo.id); }, 20000);
+  function revisarSesion() {
+    if (!A.leerCodigo(recojo.id)) location.reload(); // pasaron más de 10 min: vuelve a pedir el código
+    else A.renovarCodigo(recojo.id); // volvió a tiempo: el conteo empieza de nuevo
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") A.renovarCodigo(recojo.id);
+    else revisarSesion();
+  });
+  window.addEventListener("pageshow", (e) => { if (e.persisted) revisarSesion(); });
+
   const pbar = document.getElementById("pbar");
   function render() {
     const k = done.size;

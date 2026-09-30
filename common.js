@@ -260,10 +260,31 @@
       return { status: 0, error: "Sin conexión a internet. Inténtalo de nuevo." };
     }
   }
+  // El código del cliente se guarda solo en la sesión del navegador (sessionStorage):
+  // se borra al cerrar la pestaña o el navegador, y vence si pasa más de
+  // 10 minutos sin usar la página (por ejemplo, fuera en otra app).
   const CODE_KEY = (id) => "astra-codigo:" + id;
-  function leerCodigo(id) { try { return localStorage.getItem(CODE_KEY(id)) || ""; } catch (e) { return ""; } }
-  function guardarCodigo(id, c) { try { localStorage.setItem(CODE_KEY(id), c); } catch (e) {} }
-  function borrarCodigo(id) { try { localStorage.removeItem(CODE_KEY(id)); } catch (e) {} }
+  const CODE_LIMITE = 10 * 60 * 1000;
+  function leerCodigo(id) {
+    try {
+      const v = JSON.parse(sessionStorage.getItem(CODE_KEY(id)));
+      if (!v || !v.c) return "";
+      if (Date.now() - v.t > CODE_LIMITE) { sessionStorage.removeItem(CODE_KEY(id)); return ""; }
+      return v.c;
+    } catch (e) { return ""; }
+  }
+  function guardarCodigo(id, c) {
+    try { sessionStorage.setItem(CODE_KEY(id), JSON.stringify({ c, t: Date.now() })); } catch (e) {}
+  }
+  // Renueva el tiempo mientras el cliente está usando la página
+  function renovarCodigo(id) { const c = leerCodigo(id); if (c) guardarCodigo(id, c); }
+  function borrarCodigo(id) {
+    try { sessionStorage.removeItem(CODE_KEY(id)); localStorage.removeItem(CODE_KEY(id)); } catch (e) {}
+  }
+  // Limpieza: versiones anteriores guardaban el código para siempre en localStorage
+  try {
+    Object.keys(localStorage).filter((k) => k.startsWith("astra-codigo:")).forEach((k) => localStorage.removeItem(k));
+  } catch (e) {}
 
   // Avance guardado (para mostrarlo en el portal sin pedir las guías)
   const AV_KEY = (id) => "astra-avance:" + id;
@@ -317,7 +338,7 @@
   function listo(fn) { cargarDatos().then(fn); }
 
   const api = {
-    cargarDatos, listo, abrirRecojo, leerCodigo, guardarCodigo, borrarCodigo, guardarAvance, leerAvance, rangos, mensajeWsp, abrirWhatsApp,
+    cargarDatos, listo, abrirRecojo, leerCodigo, guardarCodigo, renovarCodigo, borrarCodigo, guardarAvance, leerAvance, rangos, mensajeWsp, abrirWhatsApp,
     isAdmin, setAdmin, navBar, recojosVisibles, DRAFT_KEY, cargarBorrador, guardarBorrador, diasDesde, fechaRelativa, fechaCompleta,
     STAR_IMG, CHECK_SVG, header, esc, totalCajas, guia, nombre, peso, num, kgCajas, kgRecojo, fechaLarga,
     loadDone, saveDone, clearDone, countDone, modal, confirmModal
