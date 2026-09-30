@@ -401,3 +401,84 @@ body.is-locked .panel-main { display: none; }
 
 .li-code { font-size: 13px; color: var(--cream-2); margin-top: 3px; }
 .li-code b { color: var(--gold); letter-spacing: 0.08em; }
+
+/* ---------- Buscador de cajas ---------- */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--muted);
+}
+.search:focus-within { border-color: var(--gold); color: var(--gold); }
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--cream);
+  font-family: inherit;
+  font-size: 16px;
+  outline: none;
+}
+.search input::-webkit-search-cancel-button { display: none; }
+.search button { border: 0; background: transparent; color: var(--cream-2); font-size: 16px; padding: 8px; }
+.search-info { font-size: 12.5px; color: var(--gold); font-weight: 600; margin-top: 6px; min-height: 0; }
+.search-info:empty { display: none; }
+.grupo[hidden], .row[hidden] { display: none !important; }
+
+/* ---------- Celular: todo un poco más compacto ---------- */
+@media (max-width: 480px) {
+  body { font-size: 14px; }
+  .wrap { padding: 0 14px 40px; }
+  .brand { padding: 16px 0 12px; }
+  .brand-star { width: 38px; }
+  .brand-name { font-size: 18px; }
+  .brand-tag { font-size: 11px; margin-top: 4px; }
+  .title { font-size: 23px; margin: 16px 0 2px; }
+  .subtitle, .lead { font-size: 13.5px; }
+  .hero-logo { width: 118px; margin-top: 20px; }
+  .hero-tag { font-size: 11.5px; }
+  .nav-btn { min-height: 36px; padding: 0 13px; font-size: 13px; }
+  .progress-bar { margin: 14px -14px 0; padding: 10px 14px; }
+  .progress-count { font-size: 14.5px; }
+  .track { height: 7px; }
+  .search { margin-top: 10px; }
+  .search input { height: 40px; font-size: 16px; }
+  .group-head { margin: 16px 0 6px; padding: 10px 14px; border-radius: 10px; }
+  .group-name { font-size: 14px; }
+  .group-count { font-size: 12.5px; }
+  .rows { gap: 5px; }
+  .row { min-height: 52px; padding: 8px 10px 8px 12px; grid-template-columns: 30px 1fr 30px; gap: 8px; }
+  .row-num { font-size: 13.5px; }
+  .row-guia { font-size: 16px; }
+  .row-kg { font-size: 11.5px; margin-left: 8px; }
+  .row-name { font-size: 12.5px; }
+  .check { width: 30px; height: 30px; border-radius: 7px; }
+  .check svg { width: 17px; height: 17px; }
+  .total { padding: 14px 16px; margin-top: 18px; }
+  .total-line { font-size: 16px; }
+  .total-note { font-size: 13px; }
+  .btn { min-height: 44px; font-size: 14px; }
+  .btn-sm { min-height: 34px; padding: 0 12px; font-size: 12.5px; }
+  .card { padding: 14px 15px 13px; border-radius: 14px; }
+  .card-title { font-size: 20px; }
+  .card-meta { font-size: 13px; }
+  .card-kicker { font-size: 11px; }
+  .day-head { font-size: 12px; }
+  .panel-box { padding: 15px; margin-top: 16px; }
+  .panel-box h2 { font-size: 16px; }
+  .field label { font-size: 12.5px; }
+  .field input, .field textarea { padding: 10px; }
+  .field-static { font-size: 16px; padding: 9px 10px; }
+  .modal-card { padding: 22px 18px 18px; }
+  .modal-title { font-size: 18px; }
+  .modal-text { font-size: 14px; }
+  .lock-card { margin-top: 32px; padding: 22px 18px 18px; }
+  .lock-input { font-size: 24px; }
+}

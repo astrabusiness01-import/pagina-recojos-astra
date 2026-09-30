@@ -96,9 +96,9 @@ function mostrar(recojo) {
     const k = g.cajas.length;
     const gkg = A.kgCajas(g.cajas);
     const gkgTxt = gkg ? ` · ${gkg} kg` : "";
-    return `<div class="group-head"><span class="group-name">${A.esc(g.nombre)}</span>
+    return `<div class="grupo"><div class="group-head"><span class="group-name">${A.esc(g.nombre)}</span>
       <span class="group-count">${k} ${k === 1 ? "caja" : "cajas"}${gkgTxt}</span></div>
-      <div class="rows">${filas}</div>`;
+      <div class="rows">${filas}</div></div>`;
   }).join("");
 
   const suma = recojo.grupos.map((g) => g.cajas.length);
@@ -113,8 +113,15 @@ function mostrar(recojo) {
         <span class="progress-pct" id="ppct"></span>
       </div>
       <div class="track"><div class="fill" id="pfill"></div></div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Buscar por guía o nombre" aria-label="Buscar caja" />
+        <button type="button" id="qClear" aria-label="Borrar búsqueda" hidden>✕</button>
+      </div>
+      <div class="search-info" id="qInfo"></div>
     </div>
-    ${gruposHtml}
+    <div id="grupos">${gruposHtml}</div>
+    <p class="empty" id="qEmpty" hidden>No se encontró ninguna caja con esa búsqueda.</p>
     <div class="total">
       <div class="total-line">Total a recoger: ${sumaTxt}</div>
       <div class="total-note">Si falta alguna caja o no coincide la guía, avisa antes de retirarte.</div>
@@ -123,6 +130,34 @@ function mostrar(recojo) {
       <button class="btn btn-danger btn-block" id="btnReset">Reiniciar checklist</button>
     </div>
     <a class="back" href="index.html">← Ver todos los recojos</a>`;
+
+  // ---------- Buscador: últimos dígitos de la guía o parte del nombre ----------
+  const sinTildes = (s) => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const q = document.getElementById("q");
+  const qClear = document.getElementById("qClear");
+  function buscar() {
+    const t = q.value.trim();
+    qClear.hidden = !t;
+    const soloDigitos = /^\d+$/.test(t);
+    const texto = sinTildes(t);
+    let hallados = 0;
+    app.querySelectorAll(".grupo").forEach((g) => {
+      let visibles = 0;
+      g.querySelectorAll(".row").forEach((row) => {
+        const ok = !t || (soloDigitos
+          ? row.dataset.guia.endsWith(t) || (t.length >= 5 && row.dataset.guia.includes(t))
+          : sinTildes(row.dataset.name).includes(texto));
+        row.hidden = !ok;
+        if (ok) visibles++;
+      });
+      g.hidden = !visibles;
+      hallados += visibles;
+    });
+    document.getElementById("qEmpty").hidden = !t || hallados > 0;
+    document.getElementById("qInfo").textContent = t && hallados ? `${hallados} ${hallados === 1 ? "caja encontrada" : "cajas encontradas"}` : "";
+  }
+  q.addEventListener("input", buscar);
+  qClear.addEventListener("click", () => { q.value = ""; buscar(); q.focus(); });
 
   const pbar = document.getElementById("pbar");
   function render() {
