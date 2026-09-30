@@ -256,6 +256,7 @@ function iniciarPanel(pin) {
       grupos
     };
 
+    let savedId = editingId;
     if (editingId) {
       const r = recojos.find((x) => x.id === editingId);
       Object.assign(r, data);
@@ -264,12 +265,14 @@ function iniciarPanel(pin) {
       let k = 2;
       while (recojos.some((x) => x.id === id)) id = `${slug(responsable)}-${data.fecha}-${k++}`;
       recojos.unshift(Object.assign({ id }, data));
+      savedId = id;
     }
     saveDraft();
     const btn = $("btnSave");
-    const ok = await conPublicacion(btn, `El recojo de <b>${A.esc(responsable)}</b> ya está visible para todos en el portal.`);
+    const ok = await conPublicacion(btn, null);
     resetForm();
-    if (!ok) flash("formStatus", "Se guardó, pero aún no se publicó. Toca «Publicar» junto al recojo en la lista.");
+    if (!ok) { flash("formStatus", "Se guardó, pero aún no se publicó. Toca «Publicar» junto al recojo en la lista."); return; }
+    await trasPublicar(savedId);
   });
 
   $("btnCancel").addEventListener("click", resetForm);
@@ -326,7 +329,7 @@ function iniciarPanel(pin) {
     if (btn.dataset.act === "wsp") {
       A.abrirWhatsApp(r);
     } else if (btn.dataset.act === "pub") {
-      await conPublicacion(btn, `El recojo de <b>${A.esc(r.responsable)}</b> ya está visible para todos en el portal.`);
+      if (await conPublicacion(btn, null)) await trasPublicar(id);
     } else if (btn.dataset.act === "edit") {
       editingId = id;
       $("formTitle").textContent = "Editar recojo · " + r.responsable;
@@ -407,6 +410,25 @@ ${body}
     PUBLICADO = JSON.stringify(d.recojos);
     recojos = JSON.parse(PUBLICADO);
     saveDraft();
+  }
+
+  // Tras publicar un recojo: enviar su WhatsApp (con código) y/o ir al portal de recojos
+  async function trasPublicar(id) {
+    const r = recojos.find((x) => x.id === id);
+    if (!r) { location.href = "index.html"; return; }
+    const destino = r.telefono ? ` a <b>+${A.esc(r.telefono)}</b>` : "";
+    const opcion = await A.modal({
+      title: "¡Publicado!",
+      html: `El recojo de <b>${A.esc(r.responsable)}</b> ya está en el portal.<br>Código de acceso: <b>${A.esc(r.codigo || "")}</b><br><br>Envía el listado y el código${destino} por WhatsApp.`,
+      icon: "check",
+      buttons: [
+        { label: "Enviar por WhatsApp y ver recojos", value: "wsp", cls: "btn-wsp" },
+        { label: "Ir al portal de recojos", value: "portal", cls: "btn-primary" }
+      ]
+    });
+    if (opcion === "wsp") A.abrirWhatsApp(r);
+    // Pequeña pausa para que el celular abra WhatsApp antes de cambiar de página
+    setTimeout(() => { location.href = "index.html"; }, opcion === "wsp" ? 600 : 0);
   }
 
   // Publica mostrando "Publicando…" en el botón usado; si falla, ofrece reintentar.
