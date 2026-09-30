@@ -6,7 +6,7 @@
 
   const CHECK_SVG =
     '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" ' +
-    'stroke="#1a1006" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    'stroke="#150e07" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function header(pillText, pillHref) {
     const pill = pillText
@@ -100,9 +100,9 @@
     const m = ensureModal();
     m.querySelector(".modal-icon").innerHTML =
       icon === "check"
-        ? '<svg viewBox="0 0 54 54" fill="none"><circle cx="27" cy="27" r="25" stroke="#F0B400" stroke-width="2.5"/><path d="M16 28l7.5 7.5L39 20" stroke="#D98300" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        ? '<svg viewBox="0 0 54 54" fill="none"><circle cx="27" cy="27" r="25" stroke="#f7a200" stroke-width="2.5"/><path d="M16 28l7.5 7.5L39 20" stroke="#dd6800" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         : icon === "warn"
-        ? '<svg viewBox="0 0 54 54" fill="none"><circle cx="27" cy="27" r="25" stroke="#D98300" stroke-width="2.5"/><path d="M27 15v16" stroke="#D98300" stroke-width="3.5" stroke-linecap="round"/><circle cx="27" cy="39" r="2.4" fill="#D98300"/></svg>'
+        ? '<svg viewBox="0 0 54 54" fill="none"><circle cx="27" cy="27" r="25" stroke="#dd6800" stroke-width="2.5"/><path d="M27 15v16" stroke="#dd6800" stroke-width="3.5" stroke-linecap="round"/><circle cx="27" cy="39" r="2.4" fill="#dd6800"/></svg>'
         : '<img src="assets/astra-star-mark.webp" alt="" style="width:54px;height:auto" />';
     m.querySelector(".modal-title").textContent = title;
     m.querySelector(".modal-text").innerHTML = html || "";
@@ -345,3 +345,5 @@
   };
   window.Astra = api;
 })();
+
+/* tono-mac */

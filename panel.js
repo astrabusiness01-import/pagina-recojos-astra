@@ -201,7 +201,7 @@ function iniciarPanel(pin, versionInicial) {
     };
     box.innerHTML =
       grupos.map((g) => `<div class="preview-group"><span>${A.esc(g.nombre)}${rango(g)}</span><span>${g.cajas.length} ${g.cajas.length === 1 ? "caja" : "cajas"}${kg([g])}</span></div>`).join("") +
-      `<div class="preview-group" style="background:rgba(232,149,47,.15)"><b>Total</b><b>${total} ${total === 1 ? "caja" : "cajas"}${kg(grupos)}</b></div>` +
+      `<div class="preview-group" style="background:rgba(239, 125, 0, 0.15)"><b>Total</b><b>${total} ${total === 1 ? "caja" : "cajas"}${kg(grupos)}</b></div>` +
       avisos.map((a) => `<div class="preview-warn">⚠ ${A.esc(a)}</div>`).join("");
   }
   $("fLista").addEventListener("input", renderPreview);
@@ -547,3 +547,5 @@ ${body}
     form.classList.add("shake");
   });
 })();
+
+/* tono-mac */
