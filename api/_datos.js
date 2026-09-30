@@ -6,8 +6,12 @@ const ARCHIVO = "recojos.json";
 const crypto = require("crypto");
 
 // Código de acceso de 4 dígitos para cada recojo (lo recibe el cliente por WhatsApp)
-function nuevoCodigo() {
-  return String(crypto.randomInt(0, 10000)).padStart(4, "0");
+// Nunca repite un código que ya use otro recojo
+function nuevoCodigo(usados = new Set()) {
+  let c;
+  do { c = String(crypto.randomInt(0, 10000)).padStart(4, "0"); } while (usados.has(c));
+  usados.add(c);
+  return c;
 }
 
 async function leerRecojos() {
@@ -18,7 +22,11 @@ async function leerRecojos() {
   if (!Array.isArray(data.recojos)) return null;
   // Recojos antiguos sin código: se les asigna uno y se guarda
   let cambio = false;
-  data.recojos.forEach((x) => { if (!/^\d{4}$/.test(x.codigo || "")) { x.codigo = nuevoCodigo(); cambio = true; } });
+  const usados = new Set();
+  data.recojos.forEach((x) => {
+    if (/^\d{4}$/.test(x.codigo || "") && !usados.has(x.codigo)) usados.add(x.codigo);
+    else { x.codigo = nuevoCodigo(usados); cambio = true; }
+  });
   if (cambio) await guardarRecojos(data.recojos);
   return data.recojos;
 }
@@ -71,6 +79,14 @@ const numero = (v) => (typeof v === "number" && isFinite(v) && v >= 0 && v < 100
 function limpiarRecojos(lista) {
   if (!Array.isArray(lista) || lista.length > 300) throw new Error("Lista de recojos inválida.");
   const ids = new Set();
+  // Primero se reservan los códigos que ya existen, para que los nuevos no los repitan
+  const usados = new Set();
+  const repetido = new Set();
+  lista.forEach((r) => {
+    const c = String((r && r.codigo) || "");
+    if (!/^\d{4}$/.test(c)) return;
+    if (usados.has(c)) repetido.add(r); else usados.add(c);
+  });
   return lista.map((r) => {
     if (!r || typeof r !== "object") throw new Error("Recojo inválido.");
     const id = txt(r.id, 80);
@@ -105,7 +121,7 @@ function limpiarRecojos(lista) {
     };
     const tel = txt(r.telefono, 15);
     if (/^\d{10,15}$/.test(tel)) limpio.telefono = tel;
-    limpio.codigo = /^\d{4}$/.test(String(r.codigo || "")) ? String(r.codigo) : nuevoCodigo();
+    limpio.codigo = /^\d{4}$/.test(String(r.codigo || "")) && !repetido.has(r) ? String(r.codigo) : nuevoCodigo(usados);
     if (r.archivado === true) limpio.archivado = true;
     return limpio;
   });
