@@ -1,0 +1,8 @@
+{
+  "name": "astra-recojos",
+  "private": true,
+  "description": "Portal de recojos ASTRA",
+  "dependencies": {
+    "@vercel/blob": "^2.8.0"
+  }
+}

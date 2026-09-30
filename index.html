@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c0906" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/webp" href="assets/astra-star-mark.webp" />
+  <link rel="apple-touch-icon" href="assets/astra-logo.webp" />
+  <link rel="stylesheet" href="styles.css?v=28" />
+  <title>Recojos · ASTRA</title>
+</head>
+<body>
+  <div class="wrap">
+    <div id="nav"></div>
+    <img class="hero-logo" src="assets/astra-logo.webp" alt="ASTRA" />
+    <p class="hero-tag">La comunidad de importaciones</p>
+    <h1 class="title center">Recojos</h1>
+    <p class="lead center">Elige tu recojo e ingresa el código que recibiste por WhatsApp.</p>
+    <div class="cards" id="cards"></div>
+  </div>
+  <script src="recojos-data.js?v=28"></script>
+  <script src="common.js?v=28"></script>
+  <script>
+    window.Astra.listo(function () {
+      const A = window.Astra;
+      document.getElementById("nav").innerHTML = A.navBar(false);
+      const list = (A.RESUMEN || []).slice().sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
+      const cards = document.getElementById("cards");
+      if (!list.length) {
+        cards.innerHTML = '<p class="empty">No hay recojos publicados por ahora.</p>';
+        return;
+      }
+      const seccion = (r) => {
+        const n = A.diasDesde(r.fecha);
+        return n === null || n > 1 ? "Anteriores" : n === 1 ? "Ayer" : "Hoy";
+      };
+      let ultima = null;
+      cards.innerHTML = list.map((r) => {
+        const sec = seccion(r);
+        const titulo = sec !== ultima ? `<h2 class="day-head">${sec}</h2>` : "";
+        ultima = sec;
+        const total = r.cajas;
+        const meta = [total + (total === 1 ? " caja" : " cajas")];
+        if (r.kg) meta.push(r.kg + " kg");
+        if (r.fecha) meta.push(A.fechaCompleta(r.fecha));
+        // Solo quien ya ingresó su código en este celular ve su avance
+        const abierto = !!A.leerCodigo(r.id);
+        const av = abierto ? A.leerAvance(r.id) : null;
+        const done = av && av.total === total ? av.hechas : 0;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        const estado = abierto && done === total && total
+          ? '<span class="badge">COMPLETO</span>'
+          : '<span class="card-arrow">›</span>';
+        const pie = abierto
+          ? `<div class="track"><div class="fill" style="width:${pct}%"></div></div>
+             <div class="card-progress">${done} de ${total} recogidas</div>`
+          : '<div class="card-lock">🔒 Ingresa con tu código de acceso</div>';
+        return titulo + `<a class="card" href="recojo.html?id=${encodeURIComponent(r.id)}">
+          <div class="card-top">
+            <div>
+              <div class="card-kicker">Recojo</div>
+              <div class="card-title">${A.esc(r.responsable)}</div>
+              <div class="card-meta">${meta.join(" · ")}</div>
+            </div>${estado}
+          </div>
+          ${pie}
+        </a>`;
+      }).join("");
+    });
+  </script>
+</body>
+</html>
