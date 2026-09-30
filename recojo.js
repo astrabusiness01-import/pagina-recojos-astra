@@ -39,8 +39,15 @@ window.Astra.listo(async function () {
   const err = document.getElementById("codeErr");
   const btn = form.querySelector("button");
   input.focus();
+  // Entra solo al completar los 4 dígitos (el botón sigue disponible)
+  input.addEventListener("input", () => {
+    input.value = input.value.replace(/\D/g, "").slice(0, 4);
+    err.textContent = "";
+    if (input.value.length === 4 && !btn.disabled) form.requestSubmit();
+  });
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (btn.disabled) return;
     const codigo = input.value.trim();
     if (!/^\d{4}$/.test(codigo)) { err.textContent = "El código tiene 4 dígitos."; return; }
     btn.disabled = true;
